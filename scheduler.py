@@ -39,11 +39,13 @@ def get_google_credentials():
 def parse_event_prompt(prompt):
     """Parse natural language prompt into structured event data using Groq API."""
     client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+    today = datetime.now().strftime('%Y-%m-%d') # Get current date
     
     response = client.chat.completions.create(
-        model="mixtral-8x7b-32768",
+        model="llama3-8b-8192", # Changed model name
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that parses natural language into calendar event data. Return only a JSON object with the following structure: {\"summary\": \"event title\", \"start\": \"YYYY-MM-DDTHH:MM:SS\", \"end\": \"YYYY-MM-DDTHH:MM:SS\", \"timezone\": \"timezone\"}"},
+            # Add current date context to the system prompt
+            {"role": "system", "content": f"You are a helpful assistant that parses natural language into calendar event data. Today's date is {today}. Return only a JSON object with the following structure: {{'summary': 'event title', 'start': 'YYYY-MM-DDTHH:MM:SS', 'end': 'YYYY-MM-DDTHH:MM:SS', 'timezone': 'timezone'}}"}, 
             {"role": "user", "content": prompt}
         ],
         response_format={ "type": "json_object" }
@@ -92,4 +94,4 @@ def main(prompt):
         click.echo(f"❌ Error: {str(e)}", err=True)
 
 if __name__ == '__main__':
-    main() 
+    main()
