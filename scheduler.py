@@ -1,6 +1,6 @@
 import os
 import json
-from datetime import datetime
+from datetime import datetime, date
 import click
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
@@ -39,13 +39,15 @@ def get_google_credentials():
 def parse_event_prompt(prompt):
     """Parse natural language prompt into structured event data using Groq API."""
     client = Groq(api_key=os.getenv('GROQ_API_KEY'))
-    today = datetime.now().strftime('%Y-%m-%d') # Get current date
+    now = datetime.now() # Get current datetime
+    today_date = now.strftime('%Y-%m-%d') # Format date
+    today_day_name = now.strftime('%A') # Get day name (e.g., 'Tuesday')
     
     response = client.chat.completions.create(
         model="llama3-8b-8192", # Changed model name
         messages=[
-            # Update system prompt to include recurrence rules in RRULE format
-            {"role": "system", "content": f"You are a helpful assistant that parses natural language into calendar event data, including recurrence rules. Today's date is {today}. Return only a JSON object with the following structure: {{'summary': 'event title', 'start': 'YYYY-MM-DDTHH:MM:SS', 'end': 'YYYY-MM-DDTHH:MM:SS', 'timezone': 'timezone', 'recurrence': ['RRULE:FREQ=...;...']}}. If no recurrence is specified, return an empty list or null for 'recurrence'. Use the iCalendar RRULE format (RFC 5545). Example: 'every Tuesday until Dec 31st' -> ['RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=YYYY1231T235959Z']"}, 
+            # Update system prompt to guide summary generation and exclude date/time from it
+            {"role": "system", "content": f"You are a helpful assistant that parses natural language into calendar event data, including recurrence rules. Today is {today_day_name}, {today_date}. Extract the core event information. The 'summary' should be a concise description of the event's subject or action, DO NOT include date or time details in the summary. Return only a JSON object with the following structure: {{'summary': 'concise event title', 'start': 'YYYY-MM-DDTHH:MM:SS', 'end': 'YYYY-MM-DDTHH:MM:SS', 'timezone': 'timezone', 'recurrence': ['RRULE:FREQ=...;...']}}. If no recurrence is specified, return an empty list or null for 'recurrence'. Use the iCalendar RRULE format (RFC 5545). Example prompt 'Text Daquiver on Friday at 1pm' should result in a summary like 'Text Daquiver'. Example prompt 'Meeting with team every Tuesday until Dec 31st' should result in summary 'Meeting with team' and recurrence ['RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=YYYY1231T235959Z']."},
             {"role": "user", "content": prompt}
         ],
         response_format={ "type": "json_object" }
