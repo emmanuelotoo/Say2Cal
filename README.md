@@ -72,7 +72,7 @@ The tool will display error messages if:
 - Timezone detection is based on user input and may not account for implicit timezone references.
 - Requires an active internet connection for both Groq API and Google Calendar API.
 - Only supports scheduling events in the primary Google Calendar.
-- Does not currently support recurring events with complex rules (e.g., "every third Friday").
+-Functionality for deleting events has not yet been added.
 
 ## License
 

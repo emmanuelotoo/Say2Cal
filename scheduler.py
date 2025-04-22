@@ -44,14 +44,18 @@ def parse_event_prompt(prompt):
     response = client.chat.completions.create(
         model="llama3-8b-8192", # Changed model name
         messages=[
-            # Add current date context to the system prompt
-            {"role": "system", "content": f"You are a helpful assistant that parses natural language into calendar event data. Today's date is {today}. Return only a JSON object with the following structure: {{'summary': 'event title', 'start': 'YYYY-MM-DDTHH:MM:SS', 'end': 'YYYY-MM-DDTHH:MM:SS', 'timezone': 'timezone'}}"}, 
+            # Update system prompt to include recurrence rules in RRULE format
+            {"role": "system", "content": f"You are a helpful assistant that parses natural language into calendar event data, including recurrence rules. Today's date is {today}. Return only a JSON object with the following structure: {{'summary': 'event title', 'start': 'YYYY-MM-DDTHH:MM:SS', 'end': 'YYYY-MM-DDTHH:MM:SS', 'timezone': 'timezone', 'recurrence': ['RRULE:FREQ=...;...']}}. If no recurrence is specified, return an empty list or null for 'recurrence'. Use the iCalendar RRULE format (RFC 5545). Example: 'every Tuesday until Dec 31st' -> ['RRULE:FREQ=WEEKLY;BYDAY=TU;UNTIL=YYYY1231T235959Z']"}, 
             {"role": "user", "content": prompt}
         ],
         response_format={ "type": "json_object" }
     )
     
-    return json.loads(response.choices[0].message.content)
+    parsed_content = json.loads(response.choices[0].message.content)
+    # Ensure recurrence is always a list, even if null or missing in response
+    if 'recurrence' not in parsed_content or parsed_content['recurrence'] is None:
+        parsed_content['recurrence'] = []
+    return parsed_content
 
 def create_calendar_event(event_data):
     """Create an event in Google Calendar."""
@@ -69,6 +73,10 @@ def create_calendar_event(event_data):
             'timeZone': event_data['timezone'],
         },
     }
+    
+    # Add recurrence rule if present and not empty
+    if 'recurrence' in event_data and event_data['recurrence']:
+        event['recurrence'] = event_data['recurrence']
     
     event = service.events().insert(calendarId='primary', body=event).execute()
     return event
@@ -88,7 +96,10 @@ def main(prompt):
         start_time = datetime.fromisoformat(event_data['start'].replace('Z', '+00:00'))
         end_time = datetime.fromisoformat(event_data['end'].replace('Z', '+00:00'))
         
-        click.echo(f"✅ Event '{event_data['summary']}' scheduled on {start_time.strftime('%Y-%m-%d')} from {start_time.strftime('%H:%M')} to {end_time.strftime('%H:%M')}.")
+        # Add recurrence info to confirmation if applicable
+        recurrence_info = " (recurring)" if event_data.get('recurrence') else ""
+        
+        click.echo(f"✅ Event '{event_data['summary']}' scheduled on {start_time.strftime('%Y-%m-%d')} from {start_time.strftime('%H:%M')} to {end_time.strftime('%H:%M')}{recurrence_info}.")
     
     except Exception as e:
         click.echo(f"❌ Error: {str(e)}", err=True)
