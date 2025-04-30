@@ -9,6 +9,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from groq import Groq
 from google.auth.exceptions import RefreshError
+from tzlocal import get_localzone
 
 # Load environment variables
 load_dotenv()
@@ -90,17 +91,23 @@ def parse_event_prompt(prompt):
 def create_calendar_event(event_data):
     """Create an event in Google Calendar."""
     creds = get_google_credentials()
+    if not creds: # Handle case where credentials could not be obtained
+        raise Exception("Could not obtain Google credentials.")
     service = build('calendar', 'v3', credentials=creds)
-    
+
+    # Get local timezone
+    local_tz = get_localzone()
+    local_tz_name = str(local_tz) # Convert to string (IANA name)
+
     event = {
         'summary': event_data['summary'],
         'start': {
             'dateTime': event_data['start'],
-            'timeZone': event_data['timezone'],
+            'timeZone': local_tz_name, # Use detected local timezone
         },
         'end': {
             'dateTime': event_data['end'],
-            'timeZone': event_data['timezone'],
+            'timeZone': local_tz_name, # Use detected local timezone
         },
     }
     
