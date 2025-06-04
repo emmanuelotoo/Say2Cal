@@ -4,7 +4,7 @@ A CLI tool that converts natural language prompts into Google Calendar events.
 
 ## Features
 
-- Natural language processing using Groq's Llama3-8b-8192 model
+- Natural language processing using Groq's llama-3.1-8b-instant model
 - Google Calendar integration
 - Simple CLI interface
 - Automatic timezone handling based on your system's local timezone
@@ -60,7 +60,7 @@ The tool will display error messages if:
 
 ## Notes
 
-- The tool uses Groq's `Llama3-8b-8192` model for natural language processing.
+- The tool uses Groq's `llama-3.1-8b-instant` model for natural language processing.
 - The response format from Groq is expected to be a JSON object with the following structure:
 
   ```json

@@ -71,7 +71,7 @@ def parse_event_prompt(prompt):
     today_day_name = now.strftime('%A') # Get day name (e.g., 'Tuesday')
     
     response = client.chat.completions.create(
-        model="llama3-8b-8192", # Changed model name
+        model="llama-3.1-8b-instant", # Updated to recommended replacement model
         messages=[
             # Update system prompt to guide summary generation and exclude date/time from it
             # Also added explicit instruction for relative date calculation.
