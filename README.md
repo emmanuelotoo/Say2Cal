@@ -27,7 +27,7 @@ A CLI tool that converts natural language prompts into Google Calendar events.
 
 3. Set up Groq API:
    - Get your API key from [Groq](https://console.groq.com/)
-   - Create a `.env` file in the project root with:
+  - Copy `.env.example` to `.env` and set:
 
      ```dotenv
      GROQ_API_KEY=your_api_key_here
@@ -40,6 +40,19 @@ Run the scheduler with a natural language prompt:
 ```bash
 python scheduler.py "Schedule my math class to be on Tuesday from 9:30 am to 11:00"
 ```
+
+You can also run it without quotes (the CLI will join all remaining words into the prompt):
+
+```bash
+python scheduler.py Schedule my math class to be on Tuesday from 9:30 am to 11:00
+```
+
+Optional flags:
+
+- `--dry-run` prints the parsed JSON without creating an event
+- `--calendar-id` targets a non-primary calendar
+- `--token-path` / `--credentials-path` override auth file locations
+- `--verbose` enables debug logging
 
 The first time you run the tool, it will open a browser window for Google Calendar authentication. After authentication, the credentials will be saved locally for future use.
 
