@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Say2Cal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="card">
+    <h1>Say2Cal</h1>
+
+    {% if not email %}
+      <p>Turn a sentence into a calendar event.</p>
+      <a class="btn" href="{{ url_for('login') }}">Sign in with Google</a>
+    {% else %}
+      <p class="who">Signed in as {{ email }} · <a href="{{ url_for('logout') }}">sign out</a></p>
+
+      {% if result %}
+        <div class="success">
+          <p>✅ Created <strong>{{ result.summary }}</strong>{% if result.recurring %} (recurring){% endif %}.</p>
+          {% if result.link %}<p><a href="{{ result.link }}" target="_blank" rel="noopener">Open in Google Calendar</a></p>{% endif %}
+        </div>
+      {% endif %}
+
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+      <form method="post" action="{{ url_for('parse') }}">
+        <textarea name="prompt" rows="3" placeholder="e.g. Dentist next Friday at 3:30pm" required>{{ prompt or '' }}</textarea>
+        <input type="hidden" name="timezone" id="timezone" value="">
+        <button class="btn" type="submit">Preview event</button>
+      </form>
+    {% endif %}
+  </main>
+
+  <script>
+    var tzField = document.getElementById('timezone');
+    if (tzField) {
+      tzField.value = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+    }
+  </script>
+</body>
+</html>
