@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Say2Cal — Preview</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="card">
+    <h1>Confirm event</h1>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    <form method="post" action="{{ url_for('create') }}">
+      <label>Title
+        <input type="text" name="summary" value="{{ event.summary }}" required>
+      </label>
+      <label>Start
+        <input type="datetime-local" name="start" value="{{ event.start[:16] }}" required>
+      </label>
+      <label>End
+        <input type="datetime-local" name="end" value="{{ event.end[:16] }}" required>
+      </label>
+      <label>Recurrence rules (one RRULE per line, optional)
+        <textarea name="recurrence" rows="2">{{ event.recurrence | join('\n') }}</textarea>
+      </label>
+      <input type="hidden" name="timezone" value="{{ timezone }}">
+      <div class="row">
+        <a class="btn secondary" href="{{ url_for('index') }}">Cancel</a>
+        <button class="btn" type="submit">Create event</button>
+      </div>
+    </form>
+    <p class="who">Times are in {{ timezone }}.</p>
+  </main>
+</body>
+</html>
