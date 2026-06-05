@@ -94,6 +94,54 @@ The tool will display error messages if:
 - Only supports scheduling events in the primary Google Calendar.
 - Functionality for deleting events has not yet been added.
 
+## Web App (personal, cloud-hosted)
+
+Say2Cal also runs as a personal web app so you can create events from a browser
+(including your phone) without the terminal. Only your Google account can sign in.
+
+### Google Cloud setup (one time)
+
+1. In the [Google Cloud Console](https://console.cloud.google.com/), open your project.
+2. Enable the **Google Calendar API**.
+3. Create an OAuth client of type **Web application** (separate from the desktop
+   client used by the CLI). Download it as `credentials.json`.
+4. Add authorized redirect URIs:
+   - `http://localhost:5000/oauth2callback` (local dev)
+   - `https://<your-app>.onrender.com/oauth2callback` (production)
+5. On the OAuth consent screen, keep publishing status **Testing** and add your
+   own email as a test user. (No Google verification needed for a private app.)
+
+### Environment variables
+
+Copy `.env.example` to `.env` and fill in: `GROQ_API_KEY`, `FLASK_SECRET_KEY`
+(`python -c "import secrets; print(secrets.token_hex(32))"`), `ALLOWED_EMAIL`,
+`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRETS_FILE`, `OAUTH_REDIRECT_URI`. For local
+http dev only, also set `OAUTHLIB_INSECURE_TRANSPORT=1`.
+
+### Run locally
+
+```bash
+pip install -r requirements.txt
+flask --app app run --port 5000
+```
+
+Open `http://localhost:5000`, sign in with Google, type a prompt, review the
+parsed event, and confirm.
+
+### Deploy to Render
+
+1. Push the repo to GitHub.
+2. Create a new **Web Service** on [Render](https://render.com/) from the repo.
+3. Start command: `gunicorn app:app` (also defined in `Procfile`).
+4. Set the environment variables above in the Render dashboard. Do NOT set
+   `OAUTHLIB_INSECURE_TRANSPORT`. Set `OAUTH_REDIRECT_URI` to your
+   `https://<your-app>.onrender.com/oauth2callback`.
+5. Provide the OAuth client secrets to the server. Either commit-free upload of
+   `credentials.json` via a Render Secret File, or keep it out of git and supply
+   it through your chosen secret mechanism.
+6. Note: the free tier sleeps when idle and takes ~30–60s to wake on the first
+   request.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
